@@ -530,10 +530,29 @@ int SharpYuvConvertWithOptions(const void* r_ptr, const void* g_ptr,
   {
     const uint64_t yuv_bytes = (yuv_bit_depth > 8) ? 2 : 1;
     const uint64_t uv_width = (width + 1) / 2;
+    const uint64_t abs_step =
+        (uint64_t)((rgb_step < 0) ? -(int64_t)rgb_step : (int64_t)rgb_step);
+    const uint64_t abs_stride =
+        (uint64_t)((rgb_stride < 0) ? -(int64_t)rgb_stride
+                                    : (int64_t)rgb_stride);
+    const uint64_t total_rgb_size = (uint64_t)height * abs_stride;
+    const uint64_t uv_height = (height + 1) / 2;
+    const uint64_t total_y_size = (uint64_t)height * y_stride;
+    const uint64_t total_u_size = uv_height * u_stride;
+    const uint64_t total_v_size = uv_height * v_stride;
 
     if (y_stride < 0 || (uint64_t)y_stride < (uint64_t)width * yuv_bytes ||
         u_stride < 0 || (uint64_t)u_stride < uv_width * yuv_bytes ||
         v_stride < 0 || (uint64_t)v_stride < uv_width * yuv_bytes) {
+      return 0;
+    }
+    if (abs_step == 0 || abs_stride < (uint64_t)width * abs_step) {
+      return 0;
+    }
+    if (total_rgb_size != (size_t)total_rgb_size ||
+        total_y_size != (size_t)total_y_size ||
+        total_u_size != (size_t)total_u_size ||
+        total_v_size != (size_t)total_v_size) {
       return 0;
     }
   }
